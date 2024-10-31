@@ -1,4 +1,4 @@
-const socket = io("http://89.176.65.87:4000", {});
+const socket = io("http://localhost:4000", {});
 
 const clientsTotal = document.getElementById('clients-total');
 const msgCont = document.getElementById('message-container');
