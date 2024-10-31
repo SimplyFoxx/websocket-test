@@ -1,10 +1,35 @@
-//Vytvářim funkci express, která tahá z npm balíčku express
 const express = require('express')
-//vytvářim funkci app, která spouští funkci express
 const path = require('path')
 const app = express()
-//určuju port pro proces
 const PORT = process.env.PORT || 4000
 const server = app.listen(PORT, () => console.log('Chat Server on port ' + PORT))
 
+const io = require('socket.io')(server)
+
 app.use(express.static(path.join(__dirname, 'public')))
+
+let socketsConnected = new Set()
+
+io.on('connection', onConnect)
+
+function onConnect(socket){
+    console.log(socket.id)
+    socketsConnected.add(socket.id)
+
+    io.emit('clients-total', socketsConnected.size)
+
+    socket.on('disconnect', () => {
+        console.log('Socket disconnected', socket.id)
+        socketsConnected.delete(socket.id)
+        io.emit('clients-total', socketsConnected.size)
+    })
+
+    socket.on('message', (data) => {
+        console.log("Server received message:", data);
+        socket.broadcast.emit('chat-msg', data)
+    })
+
+    socket.on('feedback', (data) => {
+        socket.broadcast.emit('feedback', data)
+    })
+}
